@@ -16,11 +16,11 @@ VAR juga menyediakan keterangan waktu yang akurat saat gol tercipta, serta waktu
 Sebagai proyek sederhana yang dikembangkan oleh siswa SMA, VAR ini mencerminkan kemampuan teknologi dalam menghidupkan kembali momen-momen penting di lapangan dengan cara yang lebih interaktif dan mendalam!
 
 ### FITUR UNGGULAN :
-- Skor Goal.  
-- Delay otomatis saat bola masuk ke gawang untuk mencegah kesalahan perhitungan gol.
+- Skor Goal  
+- Delay otomatis saat bola masuk ke gawang untuk mencegah kesalahan perhitungan gol
 - Keterangan Waktu saat Goal tercipta
 - Waktu Berlangsungnya Pertandingan 
 - Tayangan ulang saat bola masuk kedalam Gawang
 - Slowmo pada Tayangan ulang
   
-FLOWCHART :
+### FLOWCHART :
