@@ -1,4 +1,10 @@
-# VAR CHECK
+# VAR CHECK Group 2 
+
+## Team Member
+1. Muhammad Fachri Al Kayyis Aulia
+2. Muhammad Haafizh Nabil Kurniawan
+3. Jacinda Rakhma Afianto
+
 ## DESKRIPSI UMUM : 
 
 Proyek VAR (Video Assistant Referee) ini dirancang untuk membawa pengalaman pertandingan sepak bola ke level yang lebih tinggi dengan menghadirkan fitur-fitur unggulan yang tak tertandingi. Dengan kemampuan untuk secara otomatis menampilkan poin gol saat bola melewati garis gawang, Anda tak akan pernah melewatkan momen penting.
