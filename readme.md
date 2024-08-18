@@ -24,3 +24,5 @@ Sebagai proyek sederhana yang dikembangkan oleh siswa SMA, VAR ini mencerminkan 
 - Slowmo pada Tayangan ulang
   
 ### FLOWCHART :
+
+
