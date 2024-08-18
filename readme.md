@@ -7,13 +7,14 @@ Tidak hanya itu, VAR ini juga secara otomatis menambahkan jeda saat bola masuk k
 
 VAR juga menyediakan keterangan waktu yang akurat saat gol tercipta, serta waktu pertandingan yang selalu terupdate, memastikan Anda selalu berada dalam momen yang tepat. Semua fitur ini dirancang untuk memastikan setiap pertandingan berjalan dengan transparan, adil, dan tentunya penuh aksi seru yang tak terlupakan. 
 
-Jadi, biarkan VAR menangani setiap detail pertandingan, sementara Anda menikmati momen-momen kemenangan dan kemeriahan yang terjadi di lapangan!
+Jadi, biarkan VAR menangani setiap detail pertandingan, sementara Anda menikmati momen-momen kemenangan dan kemeriahan yang terjadi di lapangan! 
 
 FITUR UNGGULAN :
-- poin gol
-- delay secara otomatis saat bola masuk gawang 
+- Score Goal
+- Delay secara otomatis saat bola masuk gawang (Interval waktu sebelum next goal)
 - Keterangan Waktu saat goal 
 - Waktu pertandingan 
-- tayangan ulang saat bola masuk
-- saat bola masuk tayangan slowmo 
+- Tayangan ulang saat bola masuk
+- Slowmo saat bola masuk (Pada tayangan ulang) 
+
 FLOWCHART :
