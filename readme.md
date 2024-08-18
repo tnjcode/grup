@@ -25,7 +25,8 @@ Sebagai proyek sederhana yang dikembangkan oleh siswa SMA, VAR ini mencerminkan 
   
 ### FLOWCHART :
 
-![FLOWCHART VAR](https://github.com/user-attachments/assets/47e11320-c365-4ba6-9225-9e3fba78e10a)
+![flwchrt](https://github.com/user-attachments/assets/9d87b8e6-f915-470c-98d4-3cea4acf10f5)
+
 
 
 
