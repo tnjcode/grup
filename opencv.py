@@ -1,112 +1,155 @@
-# import the necessary packages
 from collections import deque
 from imutils.video import VideoStream
 import numpy as np
 import cv2
 import imutils
 import time
+import os
 
-# Define the lower and upper boundaries of the "green" ball in the HSV color space
-greenLower = (29, 86, 6)
-greenUpper = (64, 255, 255)
-
-# Define buffer size and video source
+# Konfigurasi video dan buffer
 buffer_size = 32
-video_source = 0  # 0 untuk webcam, atau path ke file video
+output_folder = "C:\\SMA_PRAXIS\\03-00-cobadulu\\RekamanGoal"
 
-# Initialize the list of tracked points, the frame counter, and the coordinate deltas
+# Load YOLO model
+yolo_weights = 'yolov3.weights'
+yolo_config = 'yolov3.cfg'
+yolo_labels = 'coco.names'
+
+net = cv2.dnn.readNetFromDarknet(yolo_config, yolo_weights)
+ln = net.getLayerNames()
+ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+
+# Load label class dari COCO dataset
+with open(yolo_labels, 'rt') as f:
+    labels = f.read().strip().split("\n")
+
+# Inisialisasi variabel
 pts = deque(maxlen=buffer_size)
 counter = 0
 (dX, dY) = (0, 0)
 direction = ""
+score = 0
+goal_counted = False
+slowmo_factor = 3
+recording = False
+out = None
+record_count = 1
+goal_time = None
+start_time = time.time()  # Waktu mulai dari 0
 
-# Grab the reference to the webcam
-vs = VideoStream(src=video_source).start()
-
-# Allow the camera or video file to warm up
+# Mulai video stream dari webcam
+vs = VideoStream(src=0).start()
 time.sleep(2.0)
 
-# Keep looping
+# Buat folder output jika belum ada
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
+# Loop utama
 while True:
-    # Grab the current frame
     frame = vs.read()
-
-    # Resize the frame, blur it, and convert it to the HSV color space
     frame = imutils.resize(frame, width=600)
-    blurred = cv2.GaussianBlur(frame, (11, 11), 0)
-    hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
+    height, width = frame.shape[:2]
+    
+    # Preprocessing YOLO
+    blob = cv2.dnn.blobFromImage(frame, 1/255.0, (416, 416), swapRB=True, crop=False)
+    net.setInput(blob)
+    layer_outputs = net.forward(ln)
 
-    # Construct a mask for the color "green", then perform a series of dilations and erosions to remove any small blobs left in the mask
-    mask = cv2.inRange(hsv, greenLower, greenUpper)
-    mask = cv2.erode(mask, None, iterations=2)
-    mask = cv2.dilate(mask, None, iterations=2)
+    boxes = []
+    confidences = []
+    classIDs = []
 
-    # Find contours in the mask and initialize the current (x, y) center of the ball
-    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
+    # Proses deteksi
+    for output in layer_outputs:
+        for detection in output:
+            scores = detection[5:]
+            classID = np.argmax(scores)
+            confidence = scores[classID]
+
+            if confidence > 0.5 and labels[classID] == "sports ball":  # Pastikan mendeteksi bola
+                box = detection[0:4] * np.array([width, height, width, height])
+                (centerX, centerY, w, h) = box.astype("int")
+
+                x = int(centerX - (w / 2))
+                y = int(centerY - (h / 2))
+
+                boxes.append([x, y, int(w), int(h)])
+                confidences.append(float(confidence))
+                classIDs.append(classID)
+
+    # Non-Maxima Suppression untuk mengeliminasi box yang tumpang tindih
+    idxs = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
+
     center = None
 
-    # Only proceed if at least one contour was found
-    if len(cnts) > 0:
-        # Find the largest contour in the mask, then use it to compute the minimum enclosing circle and centroid
-        c = max(cnts, key=cv2.contourArea)
-        ((x, y), radius) = cv2.minEnclosingCircle(c)
-        M = cv2.moments(c)
-        center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+    if len(idxs) > 0:
+        for i in idxs.flatten():
+            (x, y) = (boxes[i][0], boxes[i][1])
+            (w, h) = (boxes[i][2], boxes[i][3])
+            mid_x = width // 5
 
-        # Only proceed if the radius meets a minimum size
-        if radius > 10:
-            # Draw the circle and centroid on the frame, then update the list of tracked points
-            cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 2)
-            cv2.circle(frame, center, 5, (0, 0, 255), -1)
+            center = (x + w // 2, y + h // 2)
+
+            # Gambarkan kotak di sekitar bola
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.putText(frame, f"{labels[classIDs[i]]}: {confidences[i]:.2f}", (x, y - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             pts.appendleft(center)
 
-    # Loop over the set of tracked points
-    for i in np.arange(1, len(pts)):
-        # If either of the tracked points are None, ignore them
-        if pts[i - 1] is None or pts[i] is None:
-            continue
+            # Memulai rekaman jika bola melewati garis
+            if int(center[0] + w / 2) < mid_x and not goal_counted:
+                if not recording:
+                    video_name = os.path.join(output_folder, f"rekaman_{record_count}.avi")
+                    out = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'XVID'), 20, (width, height))
+                    print(f"Started recording: {video_name}")
+                    recording = True
+                    record_count += 1
 
-        # Check to see if enough points have been accumulated in the buffer
-        if counter >= 10 and len(pts) >= 10 and i == 1 and pts[-10] is not None:
-            # Compute the difference between the x and y coordinates and re-initialize the direction text variables
-            dX = pts[-10][0] - pts[i][0]
-            dY = pts[-10][1] - pts[i][1]
-            (dirX, dirY) = ("", "")
+            if int(center[0] + w / 2) >= mid_x and recording:
+                # Mencatat waktu goal
+                elapsed_time = time.time() - start_time
 
-            # Ensure there is significant movement in the x-direction
-            if np.abs(dX) > 20:
-                dirX = "East" if np.sign(dX) == 1 else "West"
+                goal_time = elapsed_time
+                cv2.putText(frame, f"Goal: {goal_time:.2f} sec", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 0), 3)
+                score += 1
+                goal_counted = True
+                print(f"Goal at {goal_time:.2f} sec")
 
-            # Ensure there is significant movement in the y-direction
-            if np.abs(dY) > 20:
-                dirY = "North" if np.sign(dY) == 1 else "South"
+            elif int(center[0] + w / 2) >= mid_x:
+                goal_counted = False
 
-            # Handle when both directions are non-empty
-            if dirX != "" and dirY != "":
-                direction = "{}-{}".format(dirY, dirX)
-            else:
-                direction = dirX if dirX != "" else dirY
+            # Tuliskan frame ke video dengan efek slow motion
+            if recording:
+                for _ in range(slowmo_factor):
+                    out.write(frame)
 
-        # Compute the thickness of the line and draw the connecting lines
-        thickness = int(np.sqrt(buffer_size / float(i + 1)) * 2.5)
-        cv2.line(frame, pts[i - 1], pts[i], (0, 0, 255), thickness)
+    else:
+        if recording:
+            recording = False
+            out.release()
+            print("Stopped recording")
 
-    # Show the movement deltas and the direction of movement on the frame
-    cv2.putText(frame, direction, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 0, 255), 3)
-    cv2.putText(frame, "dx: {}, dy: {}".format(dX, dY), (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+    # Menampilkan skor dan waktu goal terakhir
+    cv2.putText(frame, f"Score: {score}", (width - 150, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
+    if goal_time is not None:
+        cv2.putText(frame, f"Goal Time: {goal_time:.2f} sec", (width - 250, height - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
-    # Show the frame to our screen and increment the frame counter
     cv2.imshow("Frame", frame)
     key = cv2.waitKey(1) & 0xFF
     counter += 1
 
-    # If the 'q' key is pressed, stop the loop
+    # Jika 'q' ditekan, berhenti
     if key == ord("q"):
         break
 
-# Stop the camera video stream
-vs.stop()
+    # Jeda 5 detik setelah 'goal'
+    if goal_counted:
+        time.sleep(5)
+        goal_counted = False  # Reset flag setelah jeda
 
-# Close all windows
+# Memberhentikan stream dan menutup semua jendela
+vs.stop()
+if out is not None:
+    out.release()
 cv2.destroyAllWindows()

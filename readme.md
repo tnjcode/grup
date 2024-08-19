@@ -1,5 +1,11 @@
-JUDUL : VAR CHECK
-DESKRIPSI UMUM : 
+# VAR CHECK Group 2 
+
+## Team Member
+1. Muhammad Fachri Al Kayyis Aulia
+2. Muhammad Haafizh Nabil Kurniawan
+3. Jacinda Rakhma Afianto
+
+## DESKRIPSI UMUM : 
 
 Proyek VAR (Video Assistant Referee) ini dirancang untuk membawa pengalaman pertandingan sepak bola ke level yang lebih tinggi dengan menghadirkan fitur-fitur unggulan yang tak tertandingi. Dengan kemampuan untuk secara otomatis menampilkan poin gol saat bola melewati garis gawang, Anda tak akan pernah melewatkan momen penting.
 
@@ -7,6 +13,7 @@ Tidak hanya itu, VAR ini juga secara otomatis menambahkan jeda saat bola masuk k
 
 VAR juga menyediakan keterangan waktu yang akurat saat gol tercipta, serta waktu pertandingan yang selalu terupdate, memastikan Anda selalu berada dalam momen yang tepat. Semua fitur ini dirancang untuk memastikan setiap pertandingan berjalan dengan transparan, adil, dan tentunya penuh aksi seru yang tak terlupakan. 
 
+<<<<<<< HEAD
 Jadi, biarkan VAR menangani setiap detail pertandingan, sementara Anda menikmati momen-momen kemenangan dan kemeriahan yang terjadi di lapangan! 
 
 FITUR UNGGULAN :
@@ -18,3 +25,16 @@ FITUR UNGGULAN :
 - Slowmo saat bola masuk (Pada tayangan ulang) 
 
 FLOWCHART :
+=======
+Sebagai proyek sederhana yang dikembangkan oleh siswa SMA, VAR ini mencerminkan kemampuan teknologi dalam menghidupkan kembali momen-momen penting di lapangan dengan cara yang lebih interaktif dan mendalam!
+
+### FITUR UNGGULAN :
+- Skor Goal  
+- Delay otomatis saat bola masuk ke gawang untuk mencegah kesalahan perhitungan gol
+- Keterangan Waktu saat Goal tercipta
+- Waktu Berlangsungnya Pertandingan 
+- Tayangan ulang saat bola masuk kedalam Gawang
+- Slowmo pada Tayangan ulang
+  
+### FLOWCHART :
+>>>>>>> c518297e3c1c51dadb939f68ab538ff458ca1d3f
