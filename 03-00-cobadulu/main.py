@@ -6,22 +6,21 @@ import time
 import os
 
 # Konfigurasi video dan buffer
-buffer_size = 32
+buffer_size = 90  # Simpan frame untuk tayangan ulang (misal 3 detik, jika 30 FPS)
 output_folder = "C:\\Users\\LENOVO\\grup\\VAR\\dataP"
 
 # Load YOLOv8 Model
 yolo = YOLO('yolov8s.pt')
 
 # Inisialisasi variabel
-pts = deque(maxlen=buffer_size)
+frame_buffer = deque(maxlen=buffer_size)
 score = 0
 goal_counted = False
 recording = False
 out = None
 record_count = 1
 goal_time = None
-start_time = time.time()  # Waktu mulai dari 0
-slowmo_factor = 10  # Faktor slowmo, 2 berarti 2x lebih lambat
+start_time = time.time()
 
 # Load the video capture
 videoCap = cv2.VideoCapture(0)
@@ -47,7 +46,7 @@ while True:
     height, width = frame.shape[:2]
 
     # Garis biru sebagai garis pre-goal dan garis hijau sebagai garis goal
-    blue_line_y = height - 250  
+    blue_line_y = height - 150  
     green_line_y = height - 50  
 
     # Gambar garis biru (pre-goal) dan garis hijau (goal)
@@ -71,23 +70,22 @@ while True:
             if box.conf[0] > 0.4:
                 [x1, y1, x2, y2] = box.xyxy[0]
                 x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-
                 cls = int(box.cls[0])
                 class_name = classes_names[cls]
-
                 colour = getColours(cls)
 
+                # Draw the rectangle
                 cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 2)
                 cv2.putText(frame, f'{class_name} {box.conf[0]:.2f}', (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1, colour, 2)
 
-                if class_name == "sports ball":
+                # Check if detected object is "sports ball"
+                if class_name == "cat":
                     center = (x1 + (x2 - x1) // 2, y1 + (y2 - y1) // 2)
-                    radius = (x2 - x1) // 2
 
                     # Memulai rekaman jika bola melewati garis biru (pre-goal)
                     if y2 > blue_line_y and not recording:
                         video_name = os.path.join(output_folder, f"rekaman_{record_count}.avi")
-                        out = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'XVID'), 10, (width, height))
+                        out = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'XVID'), 20, (width, height))
                         print(f"Started recording: {video_name}")
                         recording = True
                         record_count += 1
@@ -99,32 +97,46 @@ while True:
                         goal_counted = True
                         print(f"Goal at {goal_time:.2f} sec")
 
+                    # Jika rekaman aktif, simpan frame ke video
                     if recording:
                         if goal_counted:
-                            cv2.putText(frame, f"Goal: {goal_time:.2f} sec", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 0), 1)
-                            cv2.putText(frame, f"Menit: {int(goal_time // 60)}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 0), 1)
-                            cv2.putText(frame, f"Detik: {int(goal_time % 60)}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 0), 1)
-                        
-                        # Tambahkan frame tambahan untuk slow motion
-                        for _ in range(slowmo_factor):
-                            out.write(frame)
+                            cv2.putText(frame, f"Goal: {goal_time:.2f} sec", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 0), 3)
+                            cv2.putText(frame, f"Menit: {int(goal_time // 60)}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 0), 3)
+                            cv2.putText(frame, f"Detik: {int(goal_time % 60)}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 0), 3)
+                        out.write(frame)
 
+    # Tambahkan frame ke buffer untuk tayangan ulang
+    frame_buffer.append(frame)
+
+    # Menampilkan skor dan waktu goal terakhir
     cv2.putText(frame, f"Score: {score}", (width - 150, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
     if goal_time is not None:
         cv2.putText(frame, f"Goal Time: {goal_time:.2f} sec", (width - 250, height - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
+    # Tampilkan frame
     cv2.imshow('frame', frame)
 
+    # break the loop if 'q' is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
+    # Jeda 3 detik setelah 'goal' sambil terus merekam
     if goal_counted:
         time.sleep(3)
         out.release()  # Stop and save video
         print("Video saved")
-        goal_counted = False  # Reset flag setelah jeda
-        recording = False  # Set recording to False to start new recording for next goal
 
+        # Tampilkan tayangan ulang dalam slow-motion
+        for replay_frame in reversed(frame_buffer):
+            slow_frame = cv2.resize(replay_frame, None, fx=1, fy=1)
+            cv2.imshow('frame', slow_frame)
+            if cv2.waitKey(50) & 0xFF == ord('q'):  # 50 ms delay untuk slow-motion
+                break
+
+        goal_counted = False  # Reset flag setelah jeda
+        frame_buffer.clear()  # Bersihkan buffer setelah tayangan ulang
+
+# release the video capture and destroy all windows
 videoCap.release()
 if out is not None:
     out.release()
