@@ -39,3 +39,6 @@ Sebagai proyek sederhana yang dikembangkan oleh siswa SMA, VAR ini mencerminkan 
 ### FLOWCHART :
 ![FLOWCHART VAR (1)](https://github.com/user-attachments/assets/66844b01-8131-4fdb-b505-168e9531320f)
 
+### future var
+
+
