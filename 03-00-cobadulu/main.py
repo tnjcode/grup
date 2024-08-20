@@ -81,7 +81,7 @@ while True:
                 cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 2)
                 cv2.putText(frame, f'{class_name} {box.conf[0]:.2f}', (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1, colour, 2)
 
-                if class_name == "sports ball":
+                if class_name == "remote":
                     center = (x1 + (x2 - x1) // 2, y1 + (y2 - y1) // 2)
                     radius = (x2 - x1) // 2
 
