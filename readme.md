@@ -37,4 +37,5 @@ Sebagai proyek sederhana yang dikembangkan oleh siswa SMA, VAR ini mencerminkan 
 - Slowmo pada Tayangan ulang
   
 ### FLOWCHART :
->>>>>>> c518297e3c1c51dadb939f68ab538ff458ca1d3f
+![FLOWCHART VAR (1)](https://github.com/user-attachments/assets/66844b01-8131-4fdb-b505-168e9531320f)
+
